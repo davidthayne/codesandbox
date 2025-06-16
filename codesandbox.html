@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Sandbox</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .user-info {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .code-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .code-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        #editor {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 20px;
+            resize: none;
+            background: #fafafa;
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        #editor.terminal-theme {
+            background: #0d1117;
+            color: #00ff00;
+            caret-color: #00ff00;
+        }
+        
+        #editor.terminal-theme::placeholder {
+            color: #4a5568;
+        }
+        
+        .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            margin: 20px 20px 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .output-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #output {
+            flex: 1;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        #htmlPreview {
+            flex: 1;
+            border: none;
+            background: white;
+            display: none;
+        }
+        
+        .output-running {
+            color: #007bff;
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .output-success {
+            color: #28a745;
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .output-error {
+            color: #dc3545;
+            background: #fde8e8;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .apps-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .apps-panel.open {
+            right: 0;
+        }
+        
+        .panel-header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .app-item {
+            background: #f8f9fa;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .app-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .app-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .app-meta {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .app-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .app-actions .btn {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        /* Settings Modal Styles */
+        #settingsModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #settingsModal > div {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            background: #1e1e1e !important;
+            display: flex !important;
+            flex-direction: column !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        
+        .fullscreen-header {
+            background: #2d2d30;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #464647;
+            flex-shrink: 0;
+        }
+        
+        .fullscreen-btn {
+            background: #464647;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #007acc;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .fullscreen .section-header {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐍 Python Sandbox</h1>
+        <div class="header-controls">
+            <span class="user-info">User: <span id="currentUser">Loading...</span></span>
+            <button class="btn btn-secondary" onclick="showSettings()" style="margin-right: 10px;">⚙️ Settings</button>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-primary" id="runBtn" onclick="runCode()">▶️ Run Code</button>
+        <button class="btn btn-secondary" onclick="clearEditor()">🗑️ Clear Code</button>
+        <button class="btn btn-secondary" onclick="clearOutput()">🧹 Clear Output</button>
+        <button class="btn btn-secondary" onclick="resetEnvironment()">🔄 Reset Environment</button>
+        <button class="btn btn-secondary" onclick="showApps()">📱 My Apps</button>
+        <button class="btn btn-secondary" id="toggleViewBtn" onclick="toggleOutputView()" style="display: none;">🔄 Toggle View</button>
+    </div>
+
+    <div class="main-container">
+        <div class="code-section" id="codeSection">
+            <div class="section-header">
+                <span>💻 Python Code Editor</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="fullscreen-btn" onclick="toggleTerminalTheme()" title="Toggle Terminal Theme" id="terminalThemeBtn">
+                        🌙 Terminal
+                    </button>
+                    <button class="fullscreen-btn" onclick="toggleFullscreen('code')" title="Toggle Fullscreen">
+                        🔳 Fullscreen
+                    </button>
+                </div>
+            </div>
+            <textarea id="editor" placeholder="# Welcome to Python Sandbox!
+# Write your Python code here and click 'Run Code' to execute it.
+
+print('Hello, Python Sandbox!')
+
+# Try some examples:
+# Math operations
+print(f'2 + 3 = {2 + 3}')
+
+# Working with lists
+numbers = [1, 2, 3, 4, 5]
+print(f'Sum of numbers: {sum(numbers)}')
+
+# Functions
+def greet(name):
+    return f'Hello, {name}!'
+
+print(greet('World'))"></textarea>
+        </div>
+        
+        <div class="output-section" id="outputSection">
+            <div class="section-header">
+                <span>📤 Output & App Preview</span>
+                <button class="fullscreen-btn" onclick="toggleFullscreen('output')" title="Toggle Fullscreen">
+                    🔳 Fullscreen
+                </button>
+            </div>
+            <div id="output">Ready to execute Python code...</div>
+            <iframe id="htmlPreview" style="display: none;"></iframe>
+        </div>
+    </div>
+
+    <!-- Apps Panel -->
+    <div class="apps-panel" id="appsPanel">
+        <div class="panel-header">
+            <h3>📱 My Apps</h3>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="saveCurrentApp()" id="saveAppBtn">💾 Save App</button>
+                <button class="btn btn-secondary" onclick="showApps()">Close</button>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div id="appsList">
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    <p>📝 Loading apps...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save App Modal -->
+    <div id="saveAppModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
+            <h3 style="margin-bottom: 20px;">💾 Save App</h3>
+            <div style="margin-bottom: 15px;">
+                <label for="appNameInput" style="display: block; margin-bottom: 5px; font-weight: 500;">App Name:</label>
+                <input type="text" id="appNameInput" placeholder="Enter app name..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label for="appDescriptionInput" style="display: block; margin-bottom: 5px; font-weight: 500;">Description (optional):</label>
+                <textarea id="appDescriptionInput" placeholder="Describe your app..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; height: 60px; resize: vertical;"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeSaveAppModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmSaveApp()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+            <h3 style="margin-top: 0; margin-bottom: 20px;">Settings</h3>
+            
+            <div id="passwordChangeSection" style="margin-bottom: 30px;">
+                <h4>Change Password</h4>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Current Password:</label>
+                    <input type="password" id="currentPassword" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">New Password:</label>
+                    <input type="password" id="newPassword" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Confirm New Password:</label>
+                    <input type="password" id="confirmPassword" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <button class="btn btn-primary" onclick="changePassword()">Change Password</button>
+            </div>
+            
+            <div id="adminSection" style="display: none; margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h4>Admin Settings</h4>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="demoModeCheckbox"> Demo Mode
+                        <span style="font-size: 12px; color: #666;">(Restricts certain features)</span>
+                    </label>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="allowPasswordChangeCheckbox"> Allow Password Changes
+                    </label>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="allowUserRegistrationCheckbox"> Allow User Registration
+                    </label>
+                </div>
+                <button class="btn btn-primary" onclick="updateAdminSettings()">Update Settings</button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeSettingsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let currentView = 'text'; // 'text' or 'html'
+        let fullscreenMode = null; // 'code' or 'output' or null
+        
+        function clearEditor() {
+            document.getElementById('editor').value = '';
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Ready to execute Python code...';
+            document.getElementById('output').className = '';
+            hideHtmlPreview();
+        }
+        
+        function showHtmlPreview(htmlUrl) {
+            const iframe = document.getElementById('htmlPreview');
+            const toggleBtn = document.getElementById('toggleViewBtn');
+            
+            iframe.src = htmlUrl;
+            iframe.style.display = 'block';
+            toggleBtn.style.display = 'inline-block';
+            currentView = 'html';
+            
+            // Hide text output initially when HTML is available
+            document.getElementById('output').style.display = 'none';
+        }
+        
+        function hideHtmlPreview() {
+            const iframe = document.getElementById('htmlPreview');
+            const toggleBtn = document.getElementById('toggleViewBtn');
+            
+            iframe.style.display = 'none';
+            iframe.src = '';
+            toggleBtn.style.display = 'none';
+            currentView = 'text';
+            
+            // Show text output
+            document.getElementById('output').style.display = 'block';
+        }
+        
+        function toggleOutputView() {
+            const textOutput = document.getElementById('output');
+            const htmlPreview = document.getElementById('htmlPreview');
+            
+            if (currentView === 'text') {
+                textOutput.style.display = 'none';
+                htmlPreview.style.display = 'block';
+                currentView = 'html';
+            } else {
+                textOutput.style.display = 'block';
+                htmlPreview.style.display = 'none';
+                currentView = 'text';
+            }
+        }
+        
+        async function loadUserStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                document.getElementById('currentUser').textContent = data.user;
+            } catch (error) {
+                console.error('Failed to load user status:', error);
+            }
+        }
+        
+        async function runCode() {
+            if (isRunning) return;
+            
+            const code = document.getElementById('editor').value.trim();
+            if (!code) {
+                updateOutput('No code to run.', 'error');
+                return;
+            }
+            
+            isRunning = true;
+            updateRunButton(true);
+            updateOutput('Running code...', 'running');
+            
+            try {
+                const response = await fetch('/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.html_url) {
+                    // HTML output detected
+                    showHtmlPreview(data.html_url);
+                    updateOutput(data.output || 'HTML content generated and displayed in preview.', 'success');
+                } else if (data.output) {
+                    hideHtmlPreview();
+                    updateOutput(data.output, data.output.includes('Error:') ? 'error' : 'success');
+                } else {
+                    hideHtmlPreview();
+                    updateOutput('Code executed successfully (no output)', 'success');
+                }
+            } catch (error) {
+                hideHtmlPreview();
+                updateOutput('Network error: ' + error.message, 'error');
+            } finally {
+                isRunning = false;
+                updateRunButton(false);
+            }
+        }
+        
+        function updateOutput(text, type) {
+            const output = document.getElementById('output');
+            output.textContent = text;
+            output.className = '';
+            if (type === 'running') {
+                output.classList.add('output-running');
+            } else if (type === 'error') {
+                output.classList.add('output-error');
+            } else if (type === 'success') {
+                output.classList.add('output-success');
+            }
+        }
+        
+        function updateRunButton(running) {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = running;
+            btn.textContent = running ? 'Running...' : '▶️ Run Code';
+        }
+        
+        async function resetEnvironment() {
+            try {
+                const response = await fetch('/reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateOutput('Environment reset successfully.', 'success');
+                    hideHtmlPreview();
+                } else {
+                    updateOutput('Failed to reset environment.', 'error');
+                }
+            } catch (error) {
+                updateOutput('Network error: ' + error.message, 'error');
+            }
+        }
+        
+        async function logout() {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout failed:', error);
+                window.location.href = '/';
+            }
+        }
+        
+        // Apps Management Functions
+        async function showApps() {
+            const panel = document.getElementById('appsPanel');
+            panel.classList.toggle('open');
+            
+            if (panel.classList.contains('open')) {
+                await loadUserApps();
+            }
+        }
+        
+        async function loadUserApps() {
+            try {
+                console.log('Starting loadUserApps...');
+                const response = await fetch('/apps');
+                console.log('Fetch response:', response.status, response.ok);
+                
+                if (response.status === 401) {
+                    console.log('Unauthorized, redirecting...');
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                const appsList = document.getElementById('appsList');
+                console.log('Apps list element:', appsList);
+                
+                if (data.apps && data.apps.length > 0) {
+                    console.log('Building HTML for', data.apps.length, 'apps');
+                    const html = data.apps.map(app => {
+                        console.log('Processing app:', app);
+                        return '<div class="app-item">' +
+                        '<div class="app-name">' + escapeHtml(app.name) + '</div>' +
+                        '<div class="app-description">' + escapeHtml(app.description || 'No description') + '</div>' +
+                        '<div class="app-meta">Created: ' + new Date(app.created_at).toLocaleDateString() + 
+                        (app.is_html ? ' • HTML App' : ' • Python Script') + '</div>' +
+                        '<div class="app-actions">' +
+                        '<button class="btn btn-primary" onclick="loadApp(\'' + escapeHtml(app.id) + '\')">📁 Load</button>' +
+                        '<button class="btn btn-secondary" onclick="editApp(\'' + escapeHtml(app.id) + '\')">✏️ Edit</button>' +
+                        '<button class="btn btn-danger" onclick="deleteApp(\'' + escapeHtml(app.id) + '\')">🗑️ Delete</button>' +
+                        '</div>' +
+                        '</div>';
+                    }).join('');
+                    console.log('Generated HTML:', html);
+                    appsList.innerHTML = html;
+                } else {
+                    console.log('No apps found or empty array');
+                    appsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><p>No saved apps yet. Create your first app!</p></div>';
+                }
+            } catch (error) {
+                console.error('Error in loadUserApps:', error);
+                console.error('Error stack:', error.stack);
+                document.getElementById('appsList').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;"><p>Failed to load apps.</p></div>';
+            }
+        }
+        
+        function saveCurrentApp() {
+            const code = document.getElementById('editor').value.trim();
+            if (!code) {
+                alert('Please write some code before saving an app.');
+                return;
+            }
+            
+            document.getElementById('saveAppModal').style.display = 'flex';
+            document.getElementById('appNameInput').value = '';
+            document.getElementById('appDescriptionInput').value = '';
+            document.getElementById('appNameInput').focus();
+        }
+        
+        function closeSaveAppModal() {
+            document.getElementById('saveAppModal').style.display = 'none';
+        }
+        
+        async function confirmSaveApp() {
+            const name = document.getElementById('appNameInput').value.trim();
+            const description = document.getElementById('appDescriptionInput').value.trim();
+            const code = document.getElementById('editor').value.trim();
+            
+            if (!name) {
+                alert('Please enter a name for your app.');
+                return;
+            }
+            
+            if (!code) {
+                alert('No code to save.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/apps', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        code: code,
+                        description: description
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    alert('App saved successfully!');
+                    closeSaveAppModal();
+                    
+                    // Refresh apps list if panel is open
+                    const panel = document.getElementById('appsPanel');
+                    if (panel.classList.contains('open')) {
+                        await loadUserApps();
+                    }
+                } else {
+                    alert(data.message || 'Failed to save app.');
+                }
+            } catch (error) {
+                console.error('Failed to save app:', error);
+                alert('Network error: Failed to save app.');
+            }
+        }
+        
+        async function loadApp(appId) {
+            try {
+                const response = await fetch('/apps/' + encodeURIComponent(appId));
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success && data.app) {
+                    document.getElementById('editor').value = data.app.code;
+                    updateOutput('Loaded app: ' + data.app.name, 'success');
+                    
+                    // Close apps panel
+                    document.getElementById('appsPanel').classList.remove('open');
+                } else {
+                    alert(data.message || 'Failed to load app.');
+                }
+            } catch (error) {
+                console.error('Failed to load app:', error);
+                alert('Network error: Failed to load app.');
+            }
+        }
+        
+        async function editApp(appId) {
+            try {
+                const response = await fetch('/apps/' + encodeURIComponent(appId));
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success && data.app) {
+                    // Load the app code into editor
+                    document.getElementById('editor').value = data.app.code;
+                    
+                    // Pre-fill the save modal with existing details
+                    document.getElementById('appNameInput').value = data.app.name;
+                    document.getElementById('appDescriptionInput').value = data.app.description || '';
+                    document.getElementById('saveAppModal').style.display = 'flex';
+                    
+                    // Close apps panel
+                    document.getElementById('appsPanel').classList.remove('open');
+                    updateOutput('Editing app: ' + data.app.name, 'success');
+                } else {
+                    alert(data.message || 'Failed to load app for editing.');
+                }
+            } catch (error) {
+                console.error('Failed to load app for editing:', error);
+                alert('Network error: Failed to load app for editing.');
+            }
+        }
+        
+        async function deleteApp(appId) {
+            // First get the app name for the confirmation dialog
+            try {
+                const getResponse = await fetch('/apps/' + encodeURIComponent(appId));
+                const getData = await getResponse.json();
+                const appName = getData.success && getData.app ? getData.app.name : 'this app';
+                
+                if (!confirm('Are you sure you want to delete "' + appName + '"? This action cannot be undone.')) {
+                    return;
+                }
+                
+                const response = await fetch('/apps/' + encodeURIComponent(appId), {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    alert('App deleted successfully!');
+                    // Refresh apps list
+                    await loadUserApps();
+                } else {
+                    alert(data.message || 'Failed to delete app.');
+                }
+            } catch (error) {
+                console.error('Failed to delete app:', error);
+                alert('Network error: Failed to delete app.');
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Terminal theme toggle functionality
+        let isTerminalTheme = false;
+        
+        function toggleTerminalTheme() {
+            const editor = document.getElementById('editor');
+            const themeBtn = document.getElementById('terminalThemeBtn');
+            
+            isTerminalTheme = !isTerminalTheme;
+            
+            if (isTerminalTheme) {
+                editor.classList.add('terminal-theme');
+                themeBtn.innerHTML = '☀️ Light';
+                themeBtn.title = 'Switch to Light Theme';
+            } else {
+                editor.classList.remove('terminal-theme');
+                themeBtn.innerHTML = '🌙 Terminal';
+                themeBtn.title = 'Toggle Terminal Theme';
+            }
+        }
+
+        // Fullscreen functionality
+        function toggleFullscreen(type) {
+            if (fullscreenMode === type) {
+                exitFullscreen();
+            } else {
+                enterFullscreen(type);
+            }
+        }
+        
+        function enterFullscreen(type) {
+            const section = type === 'code' ? document.getElementById('codeSection') : document.getElementById('outputSection');
+            const header = document.querySelector('.header');
+            const controls = document.querySelector('.controls');
+            const mainContainer = document.querySelector('.main-container');
+            const appsPanel = document.getElementById('appsPanel');
+            
+            // Store original parent and sibling information for restoration
+            if (!section.dataset.fullscreenData) {
+                const data = {
+                    originalParent: section.parentNode,
+                    nextSibling: section.nextSibling,
+                    originalDisplay: section.style.display,
+                    originalPosition: section.style.position,
+                    originalTop: section.style.top,
+                    originalLeft: section.style.left,
+                    originalWidth: section.style.width,
+                    originalHeight: section.style.height,
+                    originalZIndex: section.style.zIndex
+                };
+                section.dataset.fullscreenData = JSON.stringify(data);
+            }
+            
+            // Hide other elements
+            header.style.display = 'none';
+            controls.style.display = 'none';
+            if (appsPanel) {
+                appsPanel.style.display = 'none';
+            }
+            
+            // Hide the other section in main container
+            const otherSection = type === 'code' ? document.getElementById('outputSection') : document.getElementById('codeSection');
+            if (otherSection) {
+                otherSection.style.display = 'none';
+            }
+            
+            // Add fullscreen class to section
+            section.classList.add('fullscreen');
+            
+            // Style the section for fullscreen
+            section.style.position = 'fixed';
+            section.style.top = '0';
+            section.style.left = '0';
+            section.style.width = '100vw';
+            section.style.height = '100vh';
+            section.style.zIndex = '9999';
+            section.style.background = '#1e1e1e';
+            
+            // Hide the original section header and create fullscreen header
+            const originalHeader = section.querySelector('.section-header');
+            if (originalHeader) {
+                originalHeader.style.display = 'none';
+            }
+            
+            // Create and insert fullscreen header
+            const fullscreenHeader = document.createElement('div');
+            fullscreenHeader.className = 'fullscreen-header';
+            fullscreenHeader.id = 'fullscreenHeader';
+            
+            // Create title div
+            const titleDiv = document.createElement('div');
+            titleDiv.innerHTML = '<strong>🐍 Python Sandbox</strong> - ' + (type === 'code' ? 'Code Editor' : 'Output & Preview') + ' (Fullscreen)';
+            
+            // Create exit button and attach event listener properly
+            const exitButton = document.createElement('button');
+            exitButton.style.background = '#dc3545';
+            exitButton.style.color = 'white';
+            exitButton.style.border = 'none';
+            exitButton.style.padding = '8px 16px';
+            exitButton.style.borderRadius = '4px';
+            exitButton.style.cursor = 'pointer';
+            exitButton.innerHTML = '✕ Exit Fullscreen';
+            exitButton.addEventListener('click', exitFullscreen);
+            
+            fullscreenHeader.appendChild(titleDiv);
+            fullscreenHeader.appendChild(exitButton);
+            
+            section.insertBefore(fullscreenHeader, section.firstChild);
+            
+            // Adjust content sizing for fullscreen
+            if (type === 'code') {
+                const editor = section.querySelector('#editor');
+                if (editor) {
+                    editor.style.height = 'calc(100vh - 60px)';
+                    editor.style.fontSize = '16px';
+                    editor.style.lineHeight = '1.6';
+                }
+            }
+            
+            if (type === 'output') {
+                const output = section.querySelector('#output');
+                const htmlPreview = section.querySelector('#htmlPreview');
+                if (output) {
+                    output.style.height = 'calc(100vh - 60px)';
+                    output.style.fontSize = '14px';
+                }
+                if (htmlPreview) {
+                    htmlPreview.style.height = 'calc(100vh - 60px)';
+                }
+            }
+            
+            fullscreenMode = type;
+            
+            // Add escape key listener
+            document.addEventListener('keydown', handleEscapeKey);
+        }
+        
+        function exitFullscreen() {
+            if (!fullscreenMode) return;
+            
+            const section = fullscreenMode === 'code' ? document.getElementById('codeSection') : document.getElementById('outputSection');
+            const header = document.querySelector('.header');
+            const controls = document.querySelector('.controls');
+            const appsPanel = document.getElementById('appsPanel');
+            
+            // Remove fullscreen header
+            const fullscreenHeader = document.getElementById('fullscreenHeader');
+            if (fullscreenHeader) {
+                fullscreenHeader.remove();
+            }
+            
+            // Show the original section header
+            const originalHeader = section.querySelector('.section-header');
+            if (originalHeader) {
+                originalHeader.style.display = 'flex';
+            }
+            
+            // Remove fullscreen class
+            section.classList.remove('fullscreen');
+            
+            // Restore original section styling
+            if (section.dataset.fullscreenData) {
+                const data = JSON.parse(section.dataset.fullscreenData);
+                section.style.position = data.originalPosition;
+                section.style.top = data.originalTop;
+                section.style.left = data.originalLeft;
+                section.style.width = data.originalWidth;
+                section.style.height = data.originalHeight;
+                section.style.zIndex = data.originalZIndex;
+                section.style.background = '';
+                delete section.dataset.fullscreenData;
+            } else {
+                // Fallback reset
+                section.style.position = '';
+                section.style.top = '';
+                section.style.left = '';
+                section.style.width = '';
+                section.style.height = '';
+                section.style.zIndex = '';
+                section.style.background = '';
+            }
+            
+            // Show other elements
+            header.style.display = 'flex';
+            controls.style.display = 'flex';
+            if (appsPanel) {
+                appsPanel.style.display = 'block';
+            }
+            
+            // Show the other section
+            const otherSection = fullscreenMode === 'code' ? document.getElementById('outputSection') : document.getElementById('codeSection');
+            if (otherSection) {
+                otherSection.style.display = 'block';
+            }
+            
+            // Reset content element styles
+            const editor = document.getElementById('editor');
+            const output = document.getElementById('output');
+            const htmlPreview = document.getElementById('htmlPreview');
+            
+            if (editor) {
+                editor.style.height = '';
+                editor.style.fontSize = '';
+                editor.style.lineHeight = '';
+            }
+            
+            if (output) {
+                output.style.height = '';
+                output.style.fontSize = '';
+            }
+            
+            if (htmlPreview) {
+                htmlPreview.style.height = '';
+            }
+            
+            fullscreenMode = null;
+            
+            // Remove escape key listener
+            document.removeEventListener('keydown', handleEscapeKey);
+        }
+        
+        function handleEscapeKey(event) {
+            if (event.key === 'Escape' && fullscreenMode) {
+                exitFullscreen();
+            }
+        }
+
+        // Settings Functions
+        async function showSettings() {
+            try {
+                const response = await fetch('/app-settings');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        const settings = data.settings;
+                        
+                        // Show/hide password change section based on settings
+                        const passwordSection = document.getElementById('passwordChangeSection');
+                        if (settings.allow_password_change) {
+                            passwordSection.style.display = 'block';
+                        } else {
+                            passwordSection.style.display = 'none';
+                        }
+                        
+                        // Show/hide admin section based on user role
+                        const adminSection = document.getElementById('adminSection');
+                        if (settings.is_admin) {
+                            adminSection.style.display = 'block';
+                            document.getElementById('demoModeCheckbox').checked = settings.demo_mode;
+                            document.getElementById('allowPasswordChangeCheckbox').checked = settings.allow_password_change;
+                            document.getElementById('allowUserRegistrationCheckbox').checked = settings.allow_user_registration;
+                        } else {
+                            adminSection.style.display = 'none';
+                        }
+                        
+                        document.getElementById('settingsModal').style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+                alert('Failed to load settings.');
+            }
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+            // Clear password fields
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('Please fill in all password fields.');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match.');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert('Password changed successfully!');
+                    closeSettingsModal();
+                } else {
+                    alert(data.message || 'Failed to change password.');
+                }
+            } catch (error) {
+                console.error('Failed to change password:', error);
+                alert('Network error: Failed to change password.');
+            }
+        }
+
+        async function updateAdminSettings() {
+            const demoMode = document.getElementById('demoModeCheckbox').checked;
+            const allowPasswordChange = document.getElementById('allowPasswordChangeCheckbox').checked;
+            const allowUserRegistration = document.getElementById('allowUserRegistrationCheckbox').checked;
+
+            try {
+                const response = await fetch('/app-settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        demo_mode: demoMode,
+                        allow_password_change: allowPasswordChange,
+                        allow_user_registration: allowUserRegistration
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert('Settings updated successfully!');
+                } else {
+                    alert(data.message || 'Failed to update settings.');
+                }
+            } catch (error) {
+                console.error('Failed to update settings:', error);
+                alert('Network error: Failed to update settings.');
+            }
+        }
+
+        // Load user status on page load
+        loadUserStatus();
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            }
+        });
+    </script>
+</body>
+</html>
